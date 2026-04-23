@@ -1,5 +1,30 @@
+# Dependencies
 node_modules/
+
+# Environment secrets (RULE 8: Zero Leakage)
 .env
+.env.local
+.env.*.local
+
+# Build outputs
 dist/
 .next/
+out/
+
+# Logs
 *.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Circle recovery files (CRITICAL: store securely offline)
+*.recovery
+
+# TypeScript cache
+*.tsbuildinfo
