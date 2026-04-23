@@ -3,14 +3,14 @@
 import React, { useEffect, useState } from "react";
 
 interface PaymentOverlayProps {
-  amountUsdc: string;
+  amountAtomic: string;
   network: string;
   payTo: string;
   onSuccess: (paymentHash: string) => void;
   onCancel: () => void;
 }
 
-export function PaymentOverlay({ amountUsdc, network, payTo, onSuccess, onCancel }: PaymentOverlayProps) {
+export function PaymentOverlay({ amountAtomic, network, payTo, onSuccess, onCancel }: PaymentOverlayProps) {
   const [status, setStatus] = useState<"pending" | "settling" | "success">("pending");
 
   const handlePay = () => {
@@ -54,7 +54,7 @@ export function PaymentOverlay({ amountUsdc, network, payTo, onSuccess, onCancel
             </div>
             <div className="flex justify-between mb-2">
               <span className="text-[var(--text-dim)] uppercase text-xs font-bold tracking-widest">Amount</span>
-              <span className="text-[var(--accent)] font-bold">{Number(amountUsdc)} USDC</span>
+              <span className="text-[var(--accent)] font-bold">{Number(amountAtomic) / 1000000} USDC</span>
             </div>
             <div className="flex justify-between">
               <span className="text-[var(--text-dim)] uppercase text-xs font-bold tracking-widest">Pay To</span>
