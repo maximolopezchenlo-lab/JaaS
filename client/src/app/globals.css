@@ -1,0 +1,109 @@
+:root {
+  --bg: #0a0b0d;
+  --surface: rgba(255, 255, 255, 0.03);
+  --surface-hover: rgba(255, 255, 255, 0.06);
+  --border: rgba(255, 255, 255, 0.08);
+  --accent: #c5a059;
+  --accent-muted: #8a6d3b;
+  --text-primary: #e0e0e0;
+  --text-secondary: #a0a0a0;
+  --text-dim: #606060;
+  --gold-glow: 0 0 20px rgba(197, 160, 89, 0.2);
+  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
+  --glass-blur: blur(12px);
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+html, body {
+  background-color: var(--bg);
+  color: var(--text-primary);
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  overflow-x: hidden;
+  height: 100%;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Glassmorphism Classes */
+.glass {
+  background: var(--surface);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--border);
+  box-shadow: var(--glass-shadow);
+}
+
+.glass-card {
+  border-radius: 12px;
+  padding: 2rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-card:hover {
+  background: var(--surface-hover);
+  border-color: rgba(197, 160, 89, 0.3);
+  transform: translateY(-2px);
+}
+
+/* Luxury Typography */
+h1, h2, h3 {
+  color: var(--accent);
+  letter-spacing: -0.02em;
+  font-weight: 600;
+}
+
+.title-gradient {
+  background: linear-gradient(135deg, #fff 0%, var(--accent) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Buttons */
+.btn-premium {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-muted) 100%);
+  color: #000;
+  padding: 0.8rem 1.5rem;
+  border-radius: 6px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: var(--gold-glow);
+}
+
+.btn-premium:hover {
+  transform: scale(1.02);
+  box-shadow: 0 0 30px rgba(197, 160, 89, 0.4);
+}
+
+.btn-premium:disabled {
+  background: var(--text-dim);
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-muted);
+}

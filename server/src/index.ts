@@ -5,7 +5,10 @@ import { env } from "./config/env";
 import { API_PREFIX } from "./config/constants";
 import { errorHandler } from "./middleware/errorHandler";
 import { logger } from "./utils/logger";
+import { Request, Response } from "express";
+import { x402Middleware } from "./middleware/x402";
 import healthRouter from "./routes/health";
+import legalRouter from "./routes/legal";
 
 /**
  * JaaS — Server Entry Point
@@ -21,8 +24,12 @@ app.use(helmet());
 app.use(cors());
 app.use(express.json({ limit: "1mb" }));
 
+// x402 Payment Protocol (RULE 6)
+app.use(x402Middleware);
+
 // Routes
 app.use(API_PREFIX, healthRouter);
+app.use(API_PREFIX + "/legal", legalRouter);
 
 // Global error handler (RULE 3: no silent fallbacks)
 app.use(errorHandler);
@@ -34,7 +41,10 @@ app.listen(port, () => {
     port,
     environment: env.NODE_ENV,
     apiPrefix: API_PREFIX,
-    endpoints: [`GET ${API_PREFIX}/health`],
+    endpoints: [
+      `GET ${API_PREFIX}/health`,
+      `POST ${API_PREFIX}/legal/analyze`
+    ],
   });
 });
 

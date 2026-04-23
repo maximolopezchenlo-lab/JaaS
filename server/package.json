@@ -4,25 +4,31 @@
   "private": true,
   "main": "dist/index.js",
   "scripts": {
-    "dev": "ts-node src/index.ts",
+    "dev": "ts-node --transpile-only src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
     "test": "jest --passWithNoTests"
   },
   "dependencies": {
-    "express": "^4.21.0",
-    "dotenv": "^16.4.0",
-    "zod": "^3.24.0",
+    "@circle-fin/developer-controlled-wallets": "^10.3.0",
+    "@google/generative-ai": "^0.21.0",
+    "@x402/core": "^2.10.0",
+    "@x402/evm": "^2.10.0",
+    "@x402/express": "^2.10.0",
     "cors": "^2.8.5",
+    "dotenv": "^16.4.0",
+    "express": "^4.21.0",
     "helmet": "^8.0.0",
-    "@google/generative-ai": "^0.21.0"
+    "uuid": "^14.0.0",
+    "zod": "^3.24.0"
   },
   "devDependencies": {
-    "@types/express": "^5.0.0",
     "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
+    "@types/jest": "^29.5.0",
     "@types/node": "^22.0.0",
+    "@types/uuid": "^10.0.0",
     "jest": "^29.7.0",
-    "ts-jest": "^29.2.0",
-    "@types/jest": "^29.5.0"
+    "ts-jest": "^29.2.0"
   }
 }
