@@ -6,6 +6,8 @@ import { logger } from "../utils/logger";
 import { OrchestratorAgent } from "../agents/orchestrator";
 import { ExtractorAgent } from "../agents/extractor";
 import { env } from "../config/env";
+import { legalAnalysisCache } from "../utils/cache";
+import crypto from "crypto";
 
 /**
  * JaaS — Legal Analysis Route
@@ -29,11 +31,21 @@ router.post(
         jurisdiction: validatedBody.jurisdiction,
       });
 
-      // Execute Gemini Orchestration (RAMA 3)
-      const analysis = await orchestrator.analyze({
-        query: validatedBody.query,
-        jurisdiction: validatedBody.jurisdiction,
-      });
+      // Cache Optimization (RULE 15)
+      const cacheKey = crypto.createHash("sha256").update(`${validatedBody.query}|${validatedBody.jurisdiction}`).digest("hex");
+      let analysis = legalAnalysisCache.get(cacheKey);
+
+      if (!analysis) {
+        // Execute Gemini Orchestration (RAMA 3)
+        analysis = await orchestrator.analyze({
+          query: validatedBody.query,
+          jurisdiction: validatedBody.jurisdiction,
+        });
+        
+        legalAnalysisCache.set(cacheKey, analysis);
+      } else {
+        logger.info("Served analysis from RAM cache", { cacheKey });
+      }
 
       const response: LegalAnalysisResponse = {
         success: true,

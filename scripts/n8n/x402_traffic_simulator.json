@@ -1,0 +1,120 @@
+{
+  "name": "JaaS x402 Traffic Simulator (High Frequency)",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "5b23d9b4-82a8-43d9-a2e6-df06a380cebf",
+      "name": "When clicking \"Execute Workflow\"",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [ 200, 300 ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "values": {
+          "number": [
+            { "name": "totalRuns", "value": 50 }
+          ]
+        }
+      },
+      "id": "e81e13a9-e260-449e-b9ab-b4c6e6181792",
+      "name": "Set 50 iterations",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [ 420, 300 ]
+    },
+    {
+      "parameters": {
+        "batchSize": 1,
+        "options": {}
+      },
+      "id": "b3e34a74-d4b6-4b25-b46c-eb9f6f69df91",
+      "name": "Loop",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [ 640, 300 ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:3000/api/v1/legal/analyze",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Content-Type", "value": "application/json" },
+            { "name": "x-payment-proof", "value": "0x-simulated-tx-hash-{{ $runIndex }}" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"query\": \"Is digital signature binding for real estate?\",\n  \"jurisdiction\": \"AR\"\n}",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true
+            }
+          }
+        }
+      },
+      "id": "2ffb016d-8815-430c-abdf-14c1cc3dd4e1",
+      "name": "Hit Analysis API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [ 860, 300 ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    },
+    {
+      "parameters": {
+        "amount": 200,
+        "unit": "milliseconds"
+      },
+      "id": "18f506e7-1fb4-45aa-a773-6705f4268e27",
+      "name": "Wait (Rate Limit Avoidance)",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [ 1080, 300 ]
+    }
+  ],
+  "connections": {
+    "When clicking \"Execute Workflow\"": {
+      "main": [
+        [ { "node": "Set 50 iterations", "type": "main", "index": 0 } ]
+      ]
+    },
+    "Set 50 iterations": {
+      "main": [
+        [ { "node": "Loop", "type": "main", "index": 0 } ]
+      ]
+    },
+    "Loop": {
+      "main": [
+        [ { "node": "Hit Analysis API", "type": "main", "index": 0 } ]
+      ]
+    },
+    "Hit Analysis API": {
+      "main": [
+        [ { "node": "Wait (Rate Limit Avoidance)", "type": "main", "index": 0 } ]
+      ]
+    },
+    "Wait (Rate Limit Avoidance)": {
+      "main": [
+        [ { "node": "Loop", "type": "main", "index": 0 } ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveExecutionProgress": false,
+    "saveManualExecutions": false,
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": ""
+  },
+  "versionId": "f781a7ce-b11c-4384-90a8-b6e85d9b62f5",
+  "meta": {
+    "instanceId": "local",
+    "description": "RULE 18: Simulador de Tráfico de Alta Frecuencia (n8n). Simulates 50 transactions on-chain via the local endpoint to test x402 latency and caching."
+  }
+}

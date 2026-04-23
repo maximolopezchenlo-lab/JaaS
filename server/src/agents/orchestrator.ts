@@ -68,17 +68,17 @@ export class OrchestratorAgent {
         });
 
         if (!response.ok) {
-          const errorData = await response.json();
+          const errorData = await response.json() as any;
           throw new Error(errorData.error?.message || `API Error: ${response.status}`);
         }
 
-        const data = await response.json();
+        const data = await response.json() as any;
         const content = data.choices[0].message.content;
         const usage = data.usage;
         const baseAnalysis = JSON.parse(content);
 
         // Delegate entity extraction to sub-agent if available (RULE 9)
-        let entities = [];
+        let entities: any[] = [];
         if (this.extractor) {
           logger.info("Delegating entity extraction to Featherless sub-agent");
           entities = await this.extractor.extract({ text: baseAnalysis.reasoning });
