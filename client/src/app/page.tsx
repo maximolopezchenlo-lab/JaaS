@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowUp, Copy, FileText, CheckCircle2, Shield, Sparkles, Wallet, ChevronRight, Zap, Globe, Lock, Paperclip, Activity, Scale, Search, BookOpen, Gavel } from "lucide-react";
+import { ArrowUp, Copy, FileText, CheckCircle2, Shield, Sparkles, Wallet, ChevronRight, Zap, Globe, Lock, Paperclip, Activity, Scale, Search, BookOpen, Gavel, ExternalLink } from "lucide-react";
 import { TiltCard } from "./components/TiltCard";
 import { HoverButton } from "@/components/ui/hover-button";
 import { Input } from "@/components/ui/input";
@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 
 interface LegalReport {
   answer: string;
-  citations: Array<{ id: string; text: string; relevance: number }>;
+  citations: Array<{ id: string; source: string; title: string; excerpt: string; relevance: number; link: string }>;
   metadata: { models_used: string[]; execution_time_ms: number; verified_on_chain: boolean; entities: string[] };
 }
 
@@ -286,8 +286,11 @@ export default function Home() {
             answer: result.data.reasoning,
             citations: result.data.citations.map((c: any, i: number) => ({
               id: (i + 1).toString(),
-              text: `${c.source}: ${c.excerpt}`,
-              relevance: Math.round(c.relevance * 100)
+              source: c.source,
+              title: c.title,
+              excerpt: c.excerpt || "",
+              relevance: Math.round(c.relevance * 100),
+              link: `https://infoleg.gob.ar/?q=${encodeURIComponent(c.source)}`
             })),
             metadata: {
               models_used: ["Gemini 2.0 Flash", "Featherless Extractor"],
@@ -308,8 +311,11 @@ export default function Home() {
           answer: result.data.reasoning,
           citations: result.data.citations.map((c: any, i: number) => ({
             id: (i + 1).toString(),
-            text: `${c.source}: ${c.excerpt}`,
-            relevance: Math.round(c.relevance * 100)
+            source: c.source,
+            title: c.title,
+            excerpt: c.excerpt || "",
+            relevance: Math.round(c.relevance * 100),
+            link: `https://infoleg.gob.ar/?q=${encodeURIComponent(c.source)}`
           })),
           metadata: {
             models_used: ["Gemini 2.0 Flash", "Featherless Extractor"],
@@ -558,8 +564,12 @@ export default function Home() {
             {/* Main Report Article */}
             <motion.article initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}>
               <div className="max-w-none pb-16">
-                <div className="font-content whitespace-pre-wrap text-[1.05rem] md:text-[1.1rem] leading-[1.9] text-[#E8E8ED]/90 max-w-[720px]">
-                  {report.answer}
+                <div className="relative p-6 md:p-8 rounded-2xl bg-white/[0.015] border border-white/[0.04] backdrop-blur-sm shadow-xl max-w-[720px]">
+                  {/* Decorative bullet / Accent line */}
+                  <div className="absolute top-8 left-0 -ml-[1px] w-[3px] h-8 bg-[#C9A227] rounded-r-md shadow-[0_0_10px_rgba(201,162,39,0.5)]" />
+                  <div className="font-content whitespace-pre-wrap text-[1.05rem] md:text-[1.1rem] leading-[1.9] text-[#E8E8ED]/90 pl-2">
+                    {report.answer}
+                  </div>
                 </div>
 
                 {report.citations.length > 0 && (
@@ -570,13 +580,21 @@ export default function Home() {
                     <div className="space-y-4">
                       {report.citations.map((cit, idx) => (
                         <motion.div key={cit.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: idx * 0.1 + 0.4 }} className="citation-block group">
-                          <div className="flex justify-between items-start mb-2">
-                            <span className="font-ui text-[10px] font-bold text-[#8B8B96] tracking-widest">[{cit.id}]</span>
-                            <span className="font-ui text-[9px] uppercase font-bold text-[#C9A227]/60 group-hover:text-[#C9A227] transition-colors">{cit.relevance}% Match</span>
+                          transition={{ delay: idx * 0.1 + 0.4 }} className="citation-block group p-5 rounded-xl bg-white/[0.015] border border-white/[0.04] hover:bg-white/[0.03] transition-all relative">
+                          <div className="flex justify-between items-start mb-3">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className="font-ui text-[10px] font-bold text-[#C9A227] tracking-widest bg-[#C9A227]/10 px-2 py-0.5 rounded">[{cit.id}] {cit.source}</span>
+                              <span className="font-ui text-[11px] font-bold text-white/90">{cit.title}</span>
+                            </div>
+                            <span className="font-ui text-[9px] uppercase font-bold text-[#00D395]/80 group-hover:text-[#00D395] transition-colors whitespace-nowrap ml-2">{cit.relevance}% Match</span>
                           </div>
-                          <p className="font-content italic text-white/70 text-[0.95rem] leading-relaxed">"{cit.text.split(':')[1]?.trim() || cit.text}"</p>
-                          <p className="font-ui text-[9px] text-[#8B8B96] uppercase tracking-wider font-bold mt-2">{cit.text.split(':')[0]}</p>
+                          <p className="font-content italic text-white/70 text-[0.95rem] leading-relaxed mb-4 border-l-2 border-white/10 pl-3">"{cit.excerpt}"</p>
+                          
+                          {cit.link && (
+                            <a href={cit.link} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-[10px] text-[#8B8B96] hover:text-[#C9A227] font-bold uppercase tracking-widest transition-colors">
+                              <ExternalLink className="w-3 h-3" /> View Source Document
+                            </a>
+                          )}
                         </motion.div>
                       ))}
                     </div>
