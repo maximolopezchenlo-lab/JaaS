@@ -12,6 +12,7 @@
     "build": "npm run build --workspaces",
     "test": "npm test --workspaces",
     "validate-env": "bash scripts/validate-env.sh",
+    "simulate-traffic": "ts-node scripts/simulate-arc-traffic.ts",
     "teardown": "bash scripts/teardown.sh"
   },
   "devDependencies": {
