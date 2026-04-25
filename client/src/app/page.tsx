@@ -294,7 +294,8 @@ export default function Home() {
       setTimeout(() => setOrchStep(1), 1000); // Routing
 
       // 1. Initial request (Expect 402)
-      const res402 = await fetch("http://localhost:9546/api/legal/analyze", {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:9546";
+      const res402 = await fetch(`${apiUrl}/api/legal/analyze`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ query, jurisdiction: "AR" }),
@@ -313,7 +314,7 @@ export default function Home() {
         // 2. Retry with payment proof
         const txHash = `0x${Array.from({length:64}, () => Math.floor(Math.random()*16).toString(16)).join('')}`;
         
-        const res200 = await fetch("http://localhost:9546/api/legal/analyze", {
+        const res200 = await fetch(`${apiUrl}/api/legal/analyze`, {
           method: "POST",
           headers: { 
             "Content-Type": "application/json",
