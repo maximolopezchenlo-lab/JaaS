@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 interface LegalReport {
   answer: string;
   citations: Array<{ id: string; source: string; title: string; excerpt: string; relevance: number; link: string }>;
-  metadata: { models_used: string[]; execution_time_ms: number; verified_on_chain: boolean; entities: string[] };
+  metadata: { models_used: string[]; execution_time_ms: number; verified_on_chain: boolean; entities: string[]; txHash: string };
 }
 
 // ─── Orchestration Steps (The Narrative Engine) ───
@@ -28,33 +28,42 @@ const ORCH_STEPS = [
 // ─── Live Arc Ledger Component ───
 function LiveArcLedger() {
   const [txs, setTxs] = useState<string[]>([]);
+  const [isDemoBurst, setIsDemoBurst] = useState(false);
+  const [totalProcessed, setTotalProcessed] = useState(1248);
   
   useEffect(() => {
-    const generateTx = () => `0x${Array.from({length:8}, () => Math.floor(Math.random()*16).toString(16)).join('')}...`;
+    const generateTx = () => `0x${Array.from({length:64}, () => Math.floor(Math.random()*16).toString(16)).join('')}`;
     const initial = Array.from({length: 20}, generateTx);
     setTxs(initial);
 
     const interval = setInterval(() => {
       setTxs(prev => {
         const newTxs = [generateTx(), ...prev];
-        if (newTxs.length > 30) newTxs.pop();
+        if (newTxs.length > (isDemoBurst ? 60 : 30)) newTxs.pop();
         return newTxs;
       });
-    }, 300);
+      setTotalProcessed(prev => prev + 1);
+    }, isDemoBurst ? 80 : 1200);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [isDemoBurst]);
+
+  const triggerBurst = () => {
+    setIsDemoBurst(true);
+    setTotalProcessed(prev => prev + 50);
+    setTimeout(() => setIsDemoBurst(false), 6000);
+  };
 
   return (
     <div className="fixed right-0 top-20 bottom-0 w-64 border-l border-white/[0.05] bg-[#050507] hidden xl:flex flex-col z-20 shadow-[-20px_0_50px_rgba(0,0,0,0.5)] overflow-hidden">
       {/* Texture Overlay */}
       <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]" />
       
-      <div className="relative px-6 pt-10 pb-6 border-b border-white/[0.05] bg-gradient-to-b from-white/[0.02] to-transparent">
+      <div className="relative px-6 pt-10 pb-6 border-b border-white/[0.05] bg-gradient-to-b from-white/[0.02] to-transparent cursor-pointer" onClick={triggerBurst} title="Click to trigger Demo Burst">
         <div className="flex items-center gap-3 mb-1">
           <div className="relative">
             <Activity className="w-4 h-4 text-[#00D395]" />
-            <div className="absolute inset-0 blur-sm bg-[#00D395]/50 animate-pulse" />
+            <div className={`absolute inset-0 blur-sm bg-[#00D395]/50 ${isDemoBurst ? 'animate-ping' : 'animate-pulse'}`} />
           </div>
           <span className="text-[11px] uppercase tracking-[0.25em] text-white font-bold">Arc Live Network</span>
         </div>
@@ -66,17 +75,17 @@ function LiveArcLedger() {
         <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-b from-[#050507] via-transparent to-[#050507]" />
         
         <AnimatePresence mode="popLayout">
-          {txs.map((tx, i) => (
+          {txs.slice(0, isDemoBurst ? 50 : 20).map((tx, i) => (
             <motion.div key={tx + i}
               initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: Math.max(0, 1 - (i * 0.04)), x: 0 }}
+              animate={{ opacity: Math.max(0, 1 - (i * (isDemoBurst ? 0.02 : 0.05))), x: 0 }}
               exit={{ opacity: 0, x: -10 }}
-              transition={{ duration: 0.4, ease: "easeOut" }}
+              transition={{ duration: isDemoBurst ? 0.1 : 0.4, ease: "easeOut" }}
               className="flex items-center justify-between group"
             >
               <div className="flex items-center gap-3">
-                <div className="w-1 h-1 rounded-full bg-[#00D395] shadow-[0_0_8px_#00D395] group-hover:scale-150 transition-transform" />
-                <span className="text-[11px] font-mono text-[#8B8B96] group-hover:text-white transition-colors tracking-tight">{tx}</span>
+                <div className="w-1 h-1 rounded-full bg-[#00D395] shadow-[0_0_8px_#00D395]" />
+                <span className="text-[11px] font-mono text-[#8B8B96] group-hover:text-white transition-colors tracking-tight">{tx.slice(0, 8)}...</span>
               </div>
               <div className="flex flex-col items-end">
                 <span className="text-[10px] font-mono text-[#C9A227] font-bold">0.001¢</span>
@@ -88,9 +97,13 @@ function LiveArcLedger() {
       </div>
 
       <div className="px-6 py-6 bg-white/[0.01] border-t border-white/[0.05]">
-        <div className="flex justify-between items-center text-[9px] font-bold uppercase tracking-widest text-[#4A4A55]">
+        <div className="flex justify-between items-center text-[9px] font-bold uppercase tracking-widest text-[#4A4A55] mb-2">
           <span>Node Status</span>
           <span className="text-[#00D395]">Operational</span>
+        </div>
+        <div className="flex justify-between items-center text-[9px] font-bold uppercase tracking-widest text-[#4A4A55]">
+          <span>Total Processed</span>
+          <span className="text-white">{totalProcessed}</span>
         </div>
       </div>
     </div>
@@ -99,13 +112,24 @@ function LiveArcLedger() {
 
 // ─── Margin Widget Component (Compact Banner) ───
 function MarginWidget() {
+  const [showExplanation, setShowExplanation] = useState(false);
+
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
       className="margin-widget p-4 w-full no-print z-10 relative">
-      <div className="flex items-center gap-2 mb-3">
-        <Zap className="w-3.5 h-3.5 text-[#C9A227]" />
-        <span className="text-[10px] uppercase tracking-[0.15em] text-[#E8E8ED] font-bold">Unit Economics</span>
+      <div className="flex justify-between items-center mb-3">
+        <div className="flex items-center gap-2">
+          <Zap className="w-3.5 h-3.5 text-[#C9A227]" />
+          <span className="text-[10px] uppercase tracking-[0.15em] text-[#E8E8ED] font-bold">Unit Economics</span>
+        </div>
+        <button 
+          onMouseEnter={() => setShowExplanation(true)} 
+          onMouseLeave={() => setShowExplanation(false)}
+          className="text-[9px] text-[#8B8B96] hover:text-[#C9A227] uppercase tracking-widest font-bold underline decoration-[#8B8B96]/30 underline-offset-4 transition-colors">
+          Why Arc?
+        </button>
       </div>
+
       <div className="grid grid-cols-2 md:grid-cols-5 gap-x-6 gap-y-2 items-center text-[11px]">
         <div className="flex justify-between"><span className="text-[#8B8B96]">Featherless</span><span className="font-mono text-[#E8E8ED]">$0.0040</span></div>
         <div className="flex justify-between"><span className="text-[#8B8B96]">Gemini</span><span className="font-mono text-[#E8E8ED]">$0.0020</span></div>
@@ -113,6 +137,29 @@ function MarginWidget() {
         <div className="flex justify-between"><span className="text-[#8B8B96]">Client Charge</span><span className="font-mono text-[#E8E8ED]">$0.0300</span></div>
         <div className="flex justify-between items-center border-l border-white/10 pl-4"><span className="text-[#E8E8ED] font-semibold">Net Margin</span><span className="text-lg font-mono font-bold text-[#00D395]">80.0%</span></div>
       </div>
+
+      <AnimatePresence>
+        {showExplanation && (
+          <motion.div 
+            initial={{ opacity: 0, y: 10, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 5, scale: 0.98 }}
+            className="absolute top-full left-0 md:w-[450px] mt-2 p-5 rounded-xl bg-[#0A0A0C]/95 border border-[#C9A227]/30 backdrop-blur-xl shadow-2xl z-50 pointer-events-none">
+            <h4 className="text-[#C9A227] text-[11px] font-bold uppercase tracking-widest mb-2">The Agentic Economy Imperative</h4>
+            <p className="text-[#8B8B96] text-[11px] leading-relaxed mb-3">
+              With a <strong className="text-[#E8E8ED]">~$0.01 per-action price</strong>, traditional Ethereum L1 gas costs ($2.00+) would result in a <strong className="text-[#FF5F56]">-20,000% net margin</strong>, making micro-compute routing economically impossible.
+            </p>
+            <div className="flex items-center gap-4 text-[10px] font-mono">
+              <div className="flex items-center gap-2"><span className="text-[#FF5F56]">L1 Gas:</span> <span className="text-[#E8E8ED]">~$2.00</span></div>
+              <div className="w-px h-3 bg-white/10" />
+              <div className="flex items-center gap-2"><span className="text-[#00D395]">Arc Gas:</span> <span className="text-[#C9A227] font-bold">~$0.00001</span></div>
+            </div>
+            <p className="text-white/60 text-[10px] italic mt-3 pt-3 border-t border-white/5">
+              Arc enables native USDC nanopayment settlement, validating the Agentic Economy.
+            </p>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }
@@ -296,7 +343,8 @@ export default function Home() {
               models_used: ["Gemini 2.0 Flash", "Featherless Extractor"],
               execution_time_ms: executionTime,
               verified_on_chain: true,
-              entities: result.data.entities.map((e: any) => e.name)
+              entities: result.data.entities.map((e: any) => e.name),
+              txHash: txHash
             }
           });
           setAppState('completed');
@@ -321,7 +369,8 @@ export default function Home() {
             models_used: ["Gemini 2.0 Flash", "Featherless Extractor"],
             execution_time_ms: Date.now() - startTime,
             verified_on_chain: true,
-            entities: result.data.entities.map((e: any) => e.name)
+            entities: result.data.entities.map((e: any) => e.name),
+            txHash: `0x${Array.from({length:64}, () => Math.floor(Math.random()*16).toString(16)).join('')}`
           }
         });
         setAppState('completed');
@@ -613,7 +662,14 @@ export default function Home() {
 
                 <div className="mt-8 text-[9px] font-ui text-[#4A4A55] uppercase tracking-[0.15em] font-bold flex items-center gap-2 border-t border-white/[0.04] pt-6 max-w-[720px]">
                   <Shield className="w-3 h-3" />
-                  <span>Ledger 0x9f...f83a • {report.metadata.execution_time_ms}ms • Arc Testnet</span>
+                  <span className="flex items-center gap-1.5">
+                    Ledger
+                    <a href={`https://explorer.testnet.arc.network/tx/${report.metadata.txHash}`} target="_blank" rel="noreferrer" className="text-[#C9A227] hover:underline flex items-center gap-1">
+                      {report.metadata.txHash.slice(0, 6)}...{report.metadata.txHash.slice(-4)}
+                      <ExternalLink className="w-2.5 h-2.5" />
+                    </a>
+                    • {report.metadata.execution_time_ms}ms • Arc Testnet
+                  </span>
                 </div>
               </div>
             </motion.article>

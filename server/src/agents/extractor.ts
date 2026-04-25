@@ -30,7 +30,7 @@ export class ExtractorAgent {
    * Extract legal entities using a specialized model on Featherless
    */
   async extract(input: ExtractionInput): Promise<ExtractedEntity[]> {
-    const model = "meta-llama/Llama-3.2-3B-Instruct-Turbo"; // Reliable non-gated model
+    const model = "Qwen/Qwen2.5-3B-Instruct"; // Reliable open-weights model
     
     const systemPrompt = `You are a specialized Legal Entity Extractor.
     Your task is to identify and categorize all legal entities from the provided text.
@@ -58,7 +58,7 @@ export class ExtractorAgent {
             "Authorization": `Bearer ${this.apiKey}`,
           },
           body: JSON.stringify({
-            model: "meta-llama/Llama-3.2-3B-Instruct", // More common model name
+            model: "Qwen/Qwen2.5-3B-Instruct",
             messages: [
               { role: "system", content: systemPrompt },
               { role: "user", content: `Extract entities from: ${input.text}` },
